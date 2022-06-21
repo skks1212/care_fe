@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import get from "lodash.get";
 import { useSelector } from "react-redux";
-import { Link, navigate, usePath } from "raviger";
+import { ActiveLink, Link, navigate, usePath } from "raviger";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { IconButton, useTheme } from "@material-ui/core";
 import Drawer from "@material-ui/core/Drawer";
@@ -11,60 +11,55 @@ import NotificationsList from "../Notifications/NotificationsList";
 import { Close } from "@material-ui/icons";
 import { PREFERENCE_SIDEBAR_KEY, SIDEBAR } from "../../Common/constants";
 
-const LOGO = process.env.REACT_APP_LIGHT_LOGO;
+const LOGO = "/images/logo.svg" || process.env.REACT_APP_BLACK_LOGO;
 const LOGO_COLLAPSE =
-  process.env.REACT_APP_LIGHT_COLLAPSE_LOGO || "/images/logo_collapsed.svg";
+  process.env.REACT_APP_BLACK_COLLAPSE_LOGO || "/images/logo_collapsed.svg";
 
 const menus = [
   {
     title: "Facilities",
     link: "/facility",
-    icon: "fas fa-hospital",
+    icon: "hospital",
   },
   {
     title: "Patients",
     link: "/patients",
-    icon: "fas fa-user-injured",
+    icon: "user-injured",
   },
   {
     title: "Assets",
     link: "/assets",
-    icon: "fas fa-shopping-cart",
+    icon: "shopping-cart",
   },
   {
     title: "Sample Test",
     link: "/sample",
-    icon: "fas fa-medkit",
+    icon: "medkit",
   },
   {
     title: "Shifting",
     link: "/shifting",
-    icon: "fas fa-ambulance",
+    icon: "ambulance",
   },
   {
     title: "Resource",
     link: "/resource",
-    icon: "fas fa-heartbeat",
+    icon: "heartbeat",
   },
   {
     title: "External Results",
     link: "/external_results",
-    icon: "fas fa-vials",
+    icon: "vials",
   },
   {
     title: "Users",
     link: "/users",
-    icon: "fas fa-users",
-  },
-  {
-    title: "Profile",
-    link: "/user/profile",
-    icon: "fas fa-user-circle",
+    icon: "users",
   },
   {
     title: "Notice Board",
     link: "/notice_board/",
-    icon: "fas fa-comment-alt",
+    icon: "comment-alt",
   },
 ];
 
@@ -102,7 +97,7 @@ export const SideBar: React.FC<SideBarProps> = ({ isOpen, setIsOpen }) => {
     localStorage.removeItem("shift-filters");
     localStorage.removeItem("external-filters");
     localStorage.removeItem("lsg-ward-data");
-    navigate("/login");
+    navigate("/");
     window.location.reload();
   };
 
@@ -128,6 +123,61 @@ export const SideBar: React.FC<SideBarProps> = ({ isOpen, setIsOpen }) => {
   }, [isMobile, enableCollapse, setExpanded]);
 
   const open = isOpen || !isMobile;
+
+  return (
+    <div 
+      className={
+        "border-r-2 border-r-gray-100 bg-white z-10 text-black overflow-hidden transition-all flex flex-col "
+        + (expanded ? "w-64" : "w-[calc(45px+1rem)]")
+      }
+      onMouseEnter={() => !isMobile && enableCollapse && setExpanded(true)}
+      onMouseLeave={() => !isMobile && enableCollapse && setExpanded(false)}
+    >
+      <div className="inline-flex items-center justify-center">
+        <Link href="/" className="block shrink-0">
+          <img
+            className="p-2 m-2 h-10 transition whitespace-nowrap"
+            src={expanded ? LOGO : LOGO_COLLAPSE}
+            alt="care logo"
+          />
+        </Link>
+      </div>
+      <div className="flex flex-col justify-between flex-1">
+        <div>
+          {
+            menus.map((link, i)=> (
+              <NavButton
+                expanded={expanded}
+                key={i}
+                location={link.link}
+                icon = {link.icon}
+                name = {link.title}
+              />
+            ))
+          }
+        </div>
+        <div>
+          <NavButton
+            expanded={expanded}
+            location="/user/profile"
+            icon = "user-circle"
+            name = {loginUser}
+          />
+          <NavButton
+            location="/"
+            expanded={expanded}
+            click={handleSignOut}
+            icon = "arrow-right-from-bracket"
+            name = "Log out"
+            button
+          />
+        </div>
+      </div>
+      
+      
+    </div>
+  )
+
 
   return (
     <Drawer
@@ -256,3 +306,34 @@ export const SideBar: React.FC<SideBarProps> = ({ isOpen, setIsOpen }) => {
     </Drawer>
   );
 };
+
+interface NavButton {name : string, icon : string, location : string, expanded : boolean, button? : true, click? : any}
+
+function NavButton(props : NavButton){
+  const children = (
+    <>
+      <i className={`fas fa-${props.icon} w-[45px] shrink-0 text-center ${props.expanded ? "ext-center" : ""}`}/>
+      <span className="">
+        {props.name}
+      </span>
+    </>
+  )
+  const bClass =
+    "sidebar-link mx-2 my-1 rounded-lg transition relative h-[45px] overflow-hidden flex items-center whitespace-nowrap hover:bg-gray-100 " +
+    (props.expanded ? "" : "w-[45px]")
+  
+  return props.button ? (
+    <button
+      children = {children}
+      className = {bClass}
+      onClick = {() => props.click}
+    />
+  ) : (
+    <ActiveLink
+        className={bClass}
+        activeClass="active-sidebar-link bg-primary-100/70 text-primary-700 hover:bg-primary-100/70"
+        href={props.location}
+        children = {children}
+    />
+  )
+}
